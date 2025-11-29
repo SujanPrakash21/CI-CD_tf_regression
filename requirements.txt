@@ -1,9 +1,7 @@
 numpy
-pandas
+
 matplotlib
-scikit-learn
+
 tensorflow
-fastapi
-uvicorn
-dvc
+
 cml
