@@ -1,9 +1,3 @@
+tensorflow>=2.12
 numpy
-pandas
 matplotlib
-scikit-learn
-tensorflow
-fastapi
-uvicorn
-dvc
-cml
