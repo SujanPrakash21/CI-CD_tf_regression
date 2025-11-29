@@ -1,4 +1,4 @@
-name: CI_CD_tf_regression
+name: CI/CD_tf_regression
 
 on:
   push:
@@ -22,23 +22,24 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt tensorflow fastapi uvicorn dvc cml
+        pip install -r requirements.txt
 
-    - name: Train & Save Model
+    - name: Install CML
+      run: npm install -g @dvcorg/cml
+
+    - name: Train and Save Model
       run: python model.py
 
-    - name: Generate Report + CML Comment
-      env:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Generate Report
       run: |
         echo "## Model Metrics" > report.md
         cat metrics.txt >> report.md
         
         echo "\n## Model Performance" >> report.md
-        echo "Model performance metrics are on the plot below." >> report.md
-        
+        echo "Model performance metrics are shown in the plot below." >> report.md
+
         cml-publish model_results.png --md >> report.md
-        
+
         cml-send-comment report.md
 
     - name: Upload Plot Artifact
