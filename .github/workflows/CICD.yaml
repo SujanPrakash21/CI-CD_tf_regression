@@ -2,35 +2,50 @@ name: CI_CD_tf_regression
 
 on:
   push:
-    branches: [experiment, main, pipeline]
+    branches: [main, pipeline]
   pull_request:
     branches: [main]
 
 jobs:
-  ci:
+  ml_pipeline:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      # 1️⃣ Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+      # 2️⃣ Set up Python
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
+      # 3️⃣ Install only required dependencies
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install tensorflow numpy matplotlib
 
-    - name: Train Model
-      run: python model.py
+      # 4️⃣ Train your ML model
+      - name: Train Model
+        run: python model.py
 
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: model-files
-        path: |
-          model.h5
-          model_results.png
-          metrics.txt
+      # 5️⃣ Optional: CML reporting for PRs
+      - name: Install CML (optional)
+        if: github.event_name == 'pull_request'
+        run: pip install cml
+
+      - name: Create report and post PR comment (optional)
+        if: github.event_name == 'pull_request'
+        env:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "## Model Metrics" > report.md
+          cat metrics.txt >> report.md
+          echo "\n## Model Performance" >> report.md
+          echo "Model performance metrics are shown below." >> report.md
+          # Embed plot
+          cml-publish model_results.png --md >> report.md
+          # Comment on PR
+          cml-send-comment report.md
