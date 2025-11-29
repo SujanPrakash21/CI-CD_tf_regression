@@ -30,16 +30,18 @@ jobs:
     - name: Train and Save Model
       run: python model.py
 
-    - name: Generate Report
+    - name: Generate Report and Comment
+      env:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
       run: |
         echo "## Model Metrics" > report.md
         cat metrics.txt >> report.md
         
         echo "\n## Model Performance" >> report.md
         echo "Model performance metrics are shown in the plot below." >> report.md
-
+        
         cml-publish model_results.png --md >> report.md
-
+        
         cml-send-comment report.md
 
     - name: Upload Plot Artifact
