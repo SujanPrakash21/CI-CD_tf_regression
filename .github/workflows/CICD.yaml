@@ -1,9 +1,9 @@
-name: CI/CD_tf_regression
+name: CI_CD_tf_regression
 
 on:
   push:
     branches: [experiment, main, pipeline]
-  pull_request:
+  pull_request_target:
     branches: [main]
 
 jobs:
@@ -40,9 +40,9 @@ jobs:
         echo "\n## Model Performance" >> report.md
         echo "Model performance metrics are shown in the plot below." >> report.md
         
-        cml-publish model_results.png --md >> report.md
+        cml publish model_results.png --md >> report.md
         
-        cml-send-comment report.md
+        cml comment create --token=${repo_token} --publish report.md
 
     - name: Upload Plot Artifact
       uses: actions/upload-artifact@v4
