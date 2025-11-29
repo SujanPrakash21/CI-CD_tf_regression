@@ -29,23 +29,34 @@ jobs:
       - name: Train Model
         run: python model.py
 
-      # 5️⃣ Optional: Install CML only on PRs
-      - name: Install CML (for PR comments)
-        if: github.event_name == 'pull_request'
-        run: pip install cml
+      # 5️⃣ Install CML (only used if this is a PR, but always shows step)
+      - name: Install CML (for PR)
+        run: |
+          echo "Checking if this is a PR..."
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            echo "Installing CML..."
+            pip install cml
+          else
+            echo "Not a PR, skipping CML install."
+          fi
 
-      # 6️⃣ Generate report and post PR comment
+      # 6️⃣ Create report and send PR comment (only on PRs)
       - name: Create report and send PR comment
-        if: github.event_name == 'pull_request'
         env:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "## Model Metrics" > report.md
-          cat metrics.txt >> report.md
-          echo "\n## Model Performance" >> report.md
-          echo "The plot below shows predictions vs actual values." >> report.md
-          cml-publish model_results.png --md >> report.md
-          cml-send-comment report.md
+          echo "Checking if this is a PR..."
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            echo "Generating report..."
+            echo "## Model Metrics" > report.md
+            cat metrics.txt >> report.md
+            echo "\n## Model Performance" >> report.md
+            echo "The plot below shows predictions vs actual values." >> report.md
+            cml-publish model_results.png --md >> report.md
+            cml-send-comment report.md
+          else
+            echo "Not a PR, skipping report generation."
+          fi
 
       # 7️⃣ Optional: Upload artifacts for pushes
       - name: Upload artifacts
