@@ -1,3 +1,4 @@
-tensorflow>=2.12
+tensorflow
 numpy
 matplotlib
+cml
