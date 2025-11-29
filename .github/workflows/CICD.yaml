@@ -27,59 +27,34 @@ jobs:
     - name: Train & Save Model
       run: python model.py
 
-    - name: Generate Report
+    - name: Generate Report (Markdown)
       run: |
         echo "##  Model Metrics" > report.md
         cat metrics.txt >> report.md
-        echo -e "\n##  Model Plot" >> report.md
-        echo "Model prediction plot is shown below." >> report.md
 
-    - name: Upload Plot
+        echo -e "\n##  Model Plot" >> report.md
+        echo "Below is the model prediction plot." >> report.md
+
+    - name: Upload Plot Artifact
       uses: actions/upload-artifact@v4
       with:
         name: model-plot
         path: model_results.png
 
-    - name: Upload Metrics
+    - name: Upload Metrics Artifact
       uses: actions/upload-artifact@v4
       with:
         name: metrics
         path: metrics.txt
 
-    - name: Upload Model
+    - name: Upload Model Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: model-file
+        name: model-files
         path: model.h5
 
-    - name: Upload Report
+    - name: Upload Report Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: report
+        name: report-file
         path: report.md
-
-    #  PR COMMENT (AUTOMATIC)
-
-    - name: Create PR Comment with Metrics
-      if: github.event_name == 'pull_request'
-      uses: actions/github-script@v7
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const fs = require('fs');
-          const metrics = fs.readFileSync('metrics.txt', 'utf8');
-          
-          const body = `
-  ##  Model Metrics
-  ${metrics}
-
-  ##  Model Plot
-  The plot artifact is available in this workflow run (cannot embed directly in comment).
-          `;
-          
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: body
-          });
