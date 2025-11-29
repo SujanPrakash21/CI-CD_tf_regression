@@ -1,70 +1,54 @@
-name: CI_CD_tf_regression_CML
+name: mlops-example-tensorflow-regression
 
 on:
   push:
-    branches: [main, pipeline]  
+    branches: [main, pipeline]
   pull_request:
-    branches: [main]            
+    branches: [main]
 
 jobs:
-  ml_pipeline:
+  run:
     runs-on: ubuntu-latest
+    container: docker://dvcorg/cml-py3:latest
 
     steps:
-      # 1️⃣ Checkout repo
-      - name: Checkout code
-        uses: actions/checkout@v4
+      # 1️⃣ Checkout code
+      - uses: actions/checkout@v2
 
-      # 2️⃣ Set up Python
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      # 3️⃣ Install dependencies from requirements.txt
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-          
-      # 4️⃣ Train the model
-      - name: Train Model
-        run: python model.py
-
-      # 5️⃣ Install CML (only used if this is a PR, but always shows step)
-      - name: Install CML (for PR)
-        run: |
-          echo "Checking if this is a PR..."
-          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
-            echo "Installing CML..."
-            pip install cml
-          else
-            echo "Not a PR, skipping CML install."
-          fi
-
-      # 6️⃣ Create report and send PR comment (only on PRs)
-      - name: Create report and send PR comment
+      # 2️⃣ Train model and generate report
+      - name: Train model and create report
         env:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Checking if this is a PR..."
-          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
-            echo "Generating report..."
-            echo "## Model Metrics" > report.md
-            cat metrics.txt >> report.md
-            echo "\n## Model Performance" >> report.md
-            echo "The plot below shows predictions vs actual values." >> report.md
-            cml-publish model_results.png --md >> report.md
-            cml-send-comment report.md
-          else
-            echo "Not a PR, skipping report generation."
-          fi
+          # Install dependencies
+          pip install -r requirements.txt
 
-      # 7️⃣ Optional: Upload artifacts for pushes
-      - name: Upload artifacts
+          # Train model
+          python model.py
+
+          # Create report
+          echo "## Model Metrics" > report.md
+          cat metrics.txt >> report.md
+          echo "\n## Model Performance" >> report.md
+          echo "Model performance metrics are shown below." >> report.md
+          cml-publish model_results.png --md >> report.md
+
+      # 3️⃣ Upload artifacts on push (so you can download report and plot)
+      - name: Upload report and model artifacts
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
-          name: model-artifacts
+          name: ml-artifacts
           path: |
-            model.h5
-            metrics.txt
+            report.md
             model_results.png
+            metrics.txt
+            model.h5
+
+      # 4️⃣ Post PR comment if this is a pull request
+      - name: Post report as PR comment
+        if: github.event_name == 'pull_request'
+        env:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cml-send-comment report.md
