@@ -32,11 +32,11 @@ jobs:
         run: python model.py
 
       # 5️⃣ Optional: CML reporting for PRs
-      - name: Install CML (optional)
+      - name: Install CML 
         if: github.event_name == 'pull_request'
         run: pip install cml
 
-      - name: Create report and post PR comment (optional)
+      - name: Create report and post PR comment 
         if: github.event_name == 'pull_request'
         env:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
