@@ -1,10 +1,10 @@
-name: CI_CD_tf_regression
+name: CI_CD_tf_regression_CML
 
 on:
   push:
-    branches: [main, pipeline]
+    branches: [main, pipeline]  
   pull_request:
-    branches: [main]
+    branches: [main]            
 
 jobs:
   ml_pipeline:
@@ -21,22 +21,21 @@ jobs:
         with:
           python-version: '3.10'
 
-      # 3️⃣ Install only required dependencies
+      # 3️⃣ Install dependencies from requirements.txt
       - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install tensorflow numpy matplotlib
-
-      # 4️⃣ Train your ML model
+        run: pip install -r requirements.txt
+          
+      # 4️⃣ Train the model
       - name: Train Model
         run: python model.py
 
-      # 5️⃣ Optional: CML reporting for PRs
-      - name: Install CML 
+      # 5️⃣ Optional: Install CML only on PRs
+      - name: Install CML (for PR comments)
         if: github.event_name == 'pull_request'
         run: pip install cml
 
-      - name: Create report and post PR comment 
+      # 6️⃣ Generate report and post PR comment
+      - name: Create report and send PR comment
         if: github.event_name == 'pull_request'
         env:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -44,8 +43,17 @@ jobs:
           echo "## Model Metrics" > report.md
           cat metrics.txt >> report.md
           echo "\n## Model Performance" >> report.md
-          echo "Model performance metrics are shown below." >> report.md
-          # Embed plot
+          echo "The plot below shows predictions vs actual values." >> report.md
           cml-publish model_results.png --md >> report.md
-          # Comment on PR
           cml-send-comment report.md
+
+      # 7️⃣ Optional: Upload artifacts for pushes
+      - name: Upload artifacts
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-artifacts
+          path: |
+            model.h5
+            metrics.txt
+            model_results.png
