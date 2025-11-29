@@ -21,3 +21,11 @@ jobs:
     
     - name: Train & Save Model
       run: python model.py
+      
+    - name: Upload Model Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: model-files
+        path: |
+          model.h5
+          report.md*
