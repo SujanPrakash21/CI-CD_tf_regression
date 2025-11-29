@@ -1,7 +1,4 @@
-numpy
-
-matplotlib
-
-tensorflow
-
-cml
+tensorflow==2.20.0
+numpy==1.26.0
+matplotlib==3.8.4
+cml==0.0.1
