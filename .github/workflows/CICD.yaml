@@ -1,55 +1,23 @@
 name: mlops-example-tensorflow-regression
-
-on:
-  push:
-    branches: [main, pipeline]
-  pull_request:
-    branches: [main]
-    
+on: [push]
 jobs:
   run:
     runs-on: ubuntu-latest
-    container: python:3.10-bullseye  # container with modern GLIBC
-
+    container: docker://python:3.10-slim
     steps:
-      # 1️⃣ Checkout repository
-      - uses: actions/checkout@v4
-
-      # 2️⃣ Install dependencies from requirements.txt
+      - uses: actions/checkout@v2
       - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      # 3️⃣ Train model and generate report
-      - name: Train model and create report
+        run: |
+          pip install --no-cache-dir -r requirements.txt
+      - name: Train model & generate report
         env:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python model.py
-
-          # Create Markdown report
           echo "## Model Metrics" > report.md
           cat metrics.txt >> report.md
           echo "\n## Model Performance" >> report.md
-          echo "Model performance metrics are shown below." >> report.md
-
-          # Embed the plot in report
+          echo "See plot below." >> report.md
+          pip install cml
           cml-publish model_results.png --md >> report.md
-
-      # 4️⃣ Upload artifacts on push
-      - name: Upload artifacts
-        if: github.event_name == 'push'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ml-artifacts
-          path: |
-            report.md
-            model_results.png
-            metrics.txt
-            model.h5
-
-      # 5️⃣ Post report as PR comment
-      - name: Post report as PR comment
-        if: github.event_name == 'pull_request'
-        env:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-        run: cml-send-comment report.md
+          cml-send-comment report.md
