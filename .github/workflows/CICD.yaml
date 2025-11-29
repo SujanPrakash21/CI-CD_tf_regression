@@ -5,7 +5,7 @@ on:
     branches: [main, pipeline]
   pull_request:
     branches: [main]
-
+    
 jobs:
   run:
     runs-on: ubuntu-latest
