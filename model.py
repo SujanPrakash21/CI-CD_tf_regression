@@ -12,7 +12,7 @@ def plot_predictions(train_data, train_labels, test_data, test_labels, predictio
   plt.scatter(train_data, train_labels, c="b", label="Training data")
   plt.scatter(test_data, test_labels, c="g", label="Testing data")
   plt.scatter(test_data, predictions, c="r", label="Predictions")
-  plt.legend(shadow='True')
+  plt.legend(shadow=True)
   plt.grid(which='major', c='#cccccc', linestyle='--', alpha=0.5)
   plt.title('Model Results', family='Arial', fontsize=14)
   plt.xlabel('X axis values', family='Arial', fontsize=11)
